@@ -8,8 +8,14 @@ terraform {
 }
 
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  project     = var.project_id
+  region      = var.region
+  credentials = file("../secrets/gcloud-credentials.json")
+
+  default_labels = {
+    managed = "terraform"
+    project = "flight_prices"
+  }
 }
 
 resource "google_project_service" "bigquery" {
@@ -73,10 +79,11 @@ resource "google_bigquery_table" "fct_flight_prices" {
 }
 
 resource "google_storage_bucket" "bronze-gcs" {
-  name          = var.gcs_bucket_name
-  location      = var.region
-  force_destroy = true
-  storage_class = "STANDARD"
+  name                        = var.gcs_bucket_name
+  location                    = var.region
+  force_destroy               = true
+  storage_class               = "STANDARD"
+  uniform_bucket_level_access = true
 
   versioning {
     enabled = true
@@ -100,7 +107,8 @@ resource "google_storage_bucket" "bronze-gcs" {
 }
 
 resource "google_storage_bucket" "log-bucket" {
-  name          = "${var.gcs_bucket_name}-logs"
-  location      = var.region
-  force_destroy = true
+  name                        = "${var.gcs_bucket_name}-logs"
+  location                    = var.region
+  force_destroy               = true
+  uniform_bucket_level_access = true
 }
