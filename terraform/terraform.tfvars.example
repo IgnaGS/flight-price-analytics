@@ -1,0 +1,8 @@
+project_id = "YOUR_PROJECT_ID"
+region     = "us-east1"
+
+bq_dataset_id     = "DATASET_ID"
+gcs_bucket_name   = "UNIQUE_BUCKET_NAME"
+gcs_storage_class = "STANDARD"
+
+enable_audit = false
