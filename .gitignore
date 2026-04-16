@@ -1,6 +1,19 @@
 # Secrets
 secrets/
 
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+sa.json
+.env_encoded
+.json_encoded
+
 # Local .terraform directories
 .terraform/
 

@@ -1,0 +1,37 @@
+id: flight_price_pipeline
+namespace: dev
+
+inputs:
+  - id: bucket
+    type: STRING
+    defaults: flight-prices-bronze-gcs
+  - id: dataset
+    type: STRING
+    defaults: flight-prices
+
+tasks:
+  - id: convert_csv_to_parquet
+    type: io.kestra.plugin.scripts.python.Script
+    runner: DOCKER
+    docker:
+      image: python:3.9
+    beforeCommands:
+      - pip install pandas pyarrow
+    script: |
+      import pandas as pd
+      df = pd.read_csv('/workspace/src/Clean_Dataset.csv')
+      df.to_parquet('/tmp/flight_data.parquet')
+    outputFiles:
+      - /tmp/flight_data.parquet
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{ outputs.convert_csv_to_parquet.outputFiles['/tmp/flight_data.parquet'] }}"
+    to: "gs://{{ inputs.bucket }}/flight_data.parquet"
+
+  - id: load_to_bigquery
+    type: io.kestra.plugin.gcp.bigquery.Load
+    from: "gs://{{ inputs.bucket }}/flight_data.parquet"
+    destinationTable: "{{ inputs.dataset }}.flight_data"
+    format: PARQUET
+    writeDisposition: WRITE_TRUNCATE
