@@ -1,7 +1,7 @@
 variable "project_id" {
   description = "GCP project ID"
   type        = string
-  default     = "flight-price-analytics"
+  default     = "flight-prices-analytics"
 }
 
 variable "region" {
