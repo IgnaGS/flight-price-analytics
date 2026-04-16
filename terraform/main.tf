@@ -5,11 +5,6 @@ terraform {
       version = "~> 6.0"
     }
   }
-
-  backend "gcs" {
-    bucket = "flight-prices-terraform-state-project-cfe03235-055a-4f35-912"
-    prefix = "terraform/state"
-  }
 }
 
 provider "google" {
@@ -108,14 +103,4 @@ resource "google_storage_bucket" "log-bucket" {
   name          = "${var.gcs_bucket_name}-logs"
   location      = var.region
   force_destroy = true
-}
-
-resource "google_storage_bucket" "terraform-state" {
-  name          = "flight-prices-terraform-state-${var.project_id}"
-  location      = var.region
-  force_destroy = true
-
-  versioning {
-    enabled = true
-  }
 }
