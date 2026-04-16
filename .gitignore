@@ -1,3 +1,6 @@
+# Secrets
+.json_encoded
+
 # Local .terraform directories
 .terraform/
 
