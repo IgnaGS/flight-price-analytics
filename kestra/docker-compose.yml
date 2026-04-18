@@ -34,9 +34,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - kestra_tmp:/tmp/kestra-wd
       - ./flows:/app/flows
-      - /home/nacho/flight-price-analytics:/workspace
+     # - /home/nacho/flight-price-analytics:/workspace
+      - ..:/workspace
     env_file:
-      - .env_encoded
+      - .env
     environment:
       KESTRA_CONFIGURATION: |
         datasources:
