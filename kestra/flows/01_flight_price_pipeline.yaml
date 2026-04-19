@@ -1,13 +1,13 @@
-id: flight_price_pipeline
+id: 01_flight_price_pipeline
 namespace: flight-prices
 
 inputs:
   - id: bucket
     type: STRING
-    defaults: {{ envs.GCP_BUCKET_NAME }}  # nacho-flight-prices-bronze-gcs
+    defaults: "{{ kv('GCP_BUCKET_NAME') }}"  # {{ envs.GCP_BUCKET_NAME }}  # nacho-flight-prices-bronze-gcs
   - id: dataset
     type: STRING
-    defaults: {{ envs.GCP_DATASET }}  # flight-prices
+    defaults: "{{ kv('GCP_DATASET') }}"  # {{ envs.GCP_DATASET }}  # flight-prices
 
 tasks:
   - id: convert_csv_to_parquet

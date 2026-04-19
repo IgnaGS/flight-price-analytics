@@ -23,7 +23,7 @@ services:
 
   kestra:
     image: kestra/kestra:v1.1
-    pull_policy: if_not_present  # set to "always" for pulling the image from internet.
+    pull_policy: always # if_not_present  # set to "always" for pulling the image from internet.
     # Note that this setup with a root user is intended for development purpose.
     # Our base image runs without root, but the Docker Compose implementation needs root to access the Docker socket
     # To run Kestra in a rootless mode in production, see: https://kestra.io/docs/installation/podman-compose
@@ -34,8 +34,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - kestra_tmp:/tmp/kestra-wd
       - ./flows:/app/flows
-     # - /home/nacho/flight-price-analytics:/workspace
-      - ..:/workspace
+      - /home/nacho/flight-price-analytics:/workspace
+     # - ..:/workspace
     env_file:
       - .env
     environment:
@@ -63,15 +63,52 @@ services:
             tmpDir:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:8080/
-          ai:
-            type: gemini
-            gemini:
-              model-name: gemini-2.5-flash
-              api-key: ${GEMINI_API_KEY}
+      #    ai:
+      #      type: gemini
+      #      gemini:
+      #        model-name: gemini-2.5-flash
+      #        api-key: ${GEMINI_API_KEY}
     ports:
       - "8080:8080"
       - "8081:8081"
     depends_on:
       kestra_postgres:
         condition: service_healthy
+
+  kestra_flows_loader:
+    image: curlimages/curl:latest
+    volumes:
+      - ./flows:/app/flows
+      - ./load_flows.sh:/load_flows.sh
+    depends_on:
+      kestra:
+        condition: service_started
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "Waiting for Kestra to be ready..."
+        for i in {1..30}; do
+          if curl -s -f -u admin@kestra.io:Admin1234! http://kestra:8080/api/v1/info > /dev/null 2>&1; then
+            echo "Kestra is ready!"
+            break
+          fi
+          echo "Attempt $i/30 - waiting for Kestra..."
+          sleep 2
+        done
+
+        echo "Loading flows from /app/flows..."
+        for flow_file in /app/flows/*.yaml; do
+          if [ -f "$flow_file" ]; then
+            echo "Loading $flow_file..."
+            curl -X POST -u admin@kestra.io:Admin1234! \
+              -H "Content-Type: application/x-yaml" \
+              --data-binary @"$flow_file" \
+              http://kestra:8080/api/v1/flows
+            echo ""
+            echo "Loaded: $flow_file"
+          fi
+        done
+
+        echo "All flows loaded successfully!"
     
