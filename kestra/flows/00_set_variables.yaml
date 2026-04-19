@@ -6,22 +6,22 @@ tasks:
     type: io.kestra.plugin.core.kv.Set
     key: GCP_PROJECT_ID
     kvType: STRING
-    value: {{ envs.GCP_DATASET }}  # project-cfe03235-055a-4f35-912
+    value: "project-cfe03235-055a-4f35-912"
 
   - id: gcp_location
     type: io.kestra.plugin.core.kv.Set
     key: GCP_LOCATION
     kvType: STRING
-    value: {{ envs.GCP_DATASET }}  # us-east1
+    value: "us-east1"
 
   - id: gcp_bucket_name
     type: io.kestra.plugin.core.kv.Set
     key: GCP_BUCKET_NAME
     kvType: STRING
-    value: {{ envs.GCP_DATASET }}  # nacho-flight-prices-bronze-gcs
+    value: "nacho-flight-prices-bronze-gcs"
 
   - id: gcp_dataset
     type: io.kestra.plugin.core.kv.Set
     key: GCP_DATASET
     kvType: STRING
-    value: {{ envs.GCP_DATASET }}  # flight_prices
+    value: "flight_prices"

@@ -30,6 +30,11 @@ resource "google_bigquery_dataset" "bq-dataset" {
   depends_on = [google_project_service.bigquery]
 }
 
+resource "google_bigquery_table" "raw_flight_data" {
+  dataset_id = google_bigquery_dataset.bq-dataset.dataset_id
+  table_id   = "raw_flight_data"
+}
+
 resource "google_bigquery_table" "stg_flight_data" {
   dataset_id = google_bigquery_dataset.bq-dataset.dataset_id
   table_id   = "stg_flight_data"
