@@ -6,22 +6,22 @@ tasks:
     type: io.kestra.plugin.core.kv.Set
     key: GCP_PROJECT_ID
     kvType: STRING
-    value: "project-cfe03235-055a-4f35-912"
+    value: "YOUR_PROJECT_ID"  # TODO: Complete with your GCP project ID
 
   - id: gcp_location
     type: io.kestra.plugin.core.kv.Set
     key: GCP_LOCATION
     kvType: STRING
-    value: "us-east1"
+    value: "us-east1"   # TODO: Complete with the same location as the terraform deployment
 
   - id: gcp_bucket_name
     type: io.kestra.plugin.core.kv.Set
     key: GCP_BUCKET_NAME
     kvType: STRING
-    value: "nacho-flight-prices-bronze-gcs"
+    value: "UNIQUE_BUCKET_NAME" # TODO: Complete with the same location as the terraform deployment
 
   - id: gcp_dataset
     type: io.kestra.plugin.core.kv.Set
     key: GCP_DATASET
     kvType: STRING
-    value: "flight_prices"
+    value: "flight_prices"  # TODO: Complete with the same location as the terraform deployment

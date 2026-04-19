@@ -36,7 +36,7 @@ services:
       - ./flows:/app/flows
       - /home/nacho/flight-price-analytics:/workspace
     env_file:
-      - .env
+      - ../secrets/.json_encoded
     environment:
       KESTRA_CONFIGURATION: |
         datasources:
