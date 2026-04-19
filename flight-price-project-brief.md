@@ -49,4 +49,4 @@ Crear los modelos SQL para:
 - `fct_flight_prices`: Tabla final para el dashboard.
 
 ### Fase 4: Documentación
-Generar un `README.md` que explique cómo reproducir el pipeline desde cero.
+Generar un `README.md` que explique cómo reproducir el pipeline clonando este repositorio.
