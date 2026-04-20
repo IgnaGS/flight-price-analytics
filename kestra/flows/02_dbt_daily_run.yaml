@@ -40,7 +40,7 @@ tasks:
         apt-get update && apt-get install -y git
         pip install --quiet dbt-bigquery==1.6.0
         dbt debug
-        dbt run --models stg_flight_data fct_flight_prices
+        dbt run --full-refresh --models stg_flight_data fct_flight_prices
         dbt test --models stg_flight_data fct_flight_prices
 
 triggers:
