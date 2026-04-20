@@ -1,3 +1,19 @@
+# Secrets
+secrets/
+
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+sa.json
+.env_encoded
+.json_encoded
+
 # Local .terraform directories
 .terraform/
 
@@ -35,3 +51,8 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+.terraform.lock.hcl
+
+google-cloud-sdk/
+google-cloud-cli-linux-x86_64.tar.gz

@@ -1,0 +1,50 @@
+id: 02_dbt_daily_run
+namespace: flight-prices
+
+tasks:
+  - id: dbt_workspace
+    type: io.kestra.core.tasks.flows.WorkingDirectory
+    tasks:
+    - id: clone_repository
+      type: io.kestra.plugin.git.Clone
+      url: https://github.com/IgnaGS/flight-price-analytics
+      branch: feat-dbt-staging
+    
+    - id: run_dbt_models
+      type: io.kestra.plugin.scripts.shell.Script
+      containerImage: ghcr.io/kestra-io/pydata:latest
+      taskRunner:
+        type: io.kestra.plugin.scripts.runner.docker.Docker
+      namespaceFiles:
+        enabled: true
+        include:
+          - dbt/**
+          - secrets/gcloud-credentials.json
+      script: |
+        set -e
+        echo "Current directory contents:"
+        ls -la
+        echo "Checking dbt directory:"
+        ls -la dbt || echo "dbt directory not found"
+        cd dbt
+        export DBT_PROFILES_DIR=.
+        export GCP_PROJECT_ID="{{ kv('GCP_PROJECT_ID') }}"
+        export DBT_DATASET="{{ kv('GCP_DATASET') }}"
+        export GCP_LOCATION="{{ kv('GCP_LOCATION') }}"
+        export RAW_DATASET="{{ kv('GCP_DATASET') }}"
+        export RAW_TABLE_NAME="raw_flight_data"
+        cat << 'EOF' > gcp-service-account.json
+        {{ secret('GCP_SERVICE_ACCOUNT') }}
+        EOF
+        export GCP_KEY_PATH="$(pwd)/gcp-service-account.json"
+        apt-get update && apt-get install -y git
+        pip install --quiet dbt-bigquery==1.6.0
+        dbt debug
+        dbt run --full-refresh --models stg_flight_data fct_flight_prices
+        dbt test --models stg_flight_data fct_flight_prices
+
+triggers:
+  - id: dbt_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 * * *"
+    timezone: "America/Buenos_Aires"
