@@ -10,7 +10,7 @@ with raw as (
     lower(replace(trim(class), ' ', '_')) as travel_class,
     duration,
     safe_cast(days_left as int64) as days_left,
-    safe_cast(price as int64) as price,
+    round(safe_cast(price as float64) * 0.012, 2) as price_usd,
     date_add(current_date(), interval safe_cast(days_left as int64) day) as flight_date
   from {{ source('raw_flight_data', 'raw_flights') }}
 )

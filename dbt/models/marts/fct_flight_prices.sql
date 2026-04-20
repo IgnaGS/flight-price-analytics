@@ -14,9 +14,9 @@ select
   destination_city,
   airline,
   travel_class,
-  avg(price) as avg_price,
-  min(price) as min_price,
-  max(price) as max_price,
+  avg(price_usd) as avg_price,
+  min(price_usd) as min_price,
+  max(price_usd) as max_price,
   count(*) as total_flights
 from staging
 where flight_date is not null
