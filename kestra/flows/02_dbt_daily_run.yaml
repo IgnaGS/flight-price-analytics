@@ -1,0 +1,27 @@
+id: 02_dbt_daily_run
+namespace: flight-prices
+
+schedule:
+  cron: "0 9 * * *"
+  timezone: "America/Santiago"
+
+tasks:
+  - id: run_dbt
+    type: io.kestra.plugin.scripts.shell.Script
+    containerImage: ghcr.io/kestra-io/pydata:latest
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+    script: |
+      set -e
+      cd /workspace/dbt
+      export DBT_PROFILES_DIR=/workspace/dbt
+      export GCP_PROJECT_ID="{{ kv('GCP_PROJECT_ID') }}"
+      export DBT_DATASET="{{ kv('GCP_DATASET') }}"
+      export GCP_LOCATION="{{ kv('GCP_LOCATION') }}"
+      export RAW_DATASET="{{ kv('GCP_DATASET') }}"
+      export RAW_TABLE_NAME="raw_flight_data"
+      export GCP_KEY_PATH="/workspace/secrets/gcloud-credentials.json"
+      pip install --quiet dbt-bigquery==1.6.0
+      dbt debug
+      dbt run --models stg_flight_data fct_flight_prices
+      dbt test --models stg_flight_data fct_flight_prices
