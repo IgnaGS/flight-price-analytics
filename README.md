@@ -1,58 +1,137 @@
-# Flight Price Analytics
+<p align="center">
+  <img src="images/header.png" alt="Flight Price Analytics Header" width="100%">
+</p>
 
-## Pipeline overview
+# Flight Price Analytics 🛫
 
-Este repositorio implementa un pipeline batch para analizar precios de vuelos desde un dataset local hacia BigQuery, con transformación en dbt y orquestación en Kestra.
+An end-to-end batch data pipeline designed to analyze flight price patterns and determine optimal booking windows using the Google Cloud Platform (GCP) ecosystem.
 
-### Componentes principales
+## 📖 Problem Statement
 
-- `kestra/`: orquesta la ingesta de CSV, conversión a Parquet y carga a BigQuery.
-- `dbt/`: contiene el proyecto dbt que limpia, transforma y materializa los modelos.
-- `secrets/`: credenciales y secretos para GCP.
+Planning a trip often involves the stressful task of deciding when to buy flight tickets. Prices fluctuate based on various factors such as airline, cabin class, and most importantly, how many days are left before the flight.
 
-## Estructura dbt
+This project aims to solve this by:
+1.  **Ingesting** historical flight data into a cloud data lake.
+2.  **Transforming** raw data into analytical models to identify price trends.
+3.  **Visualizing** the distribution of prices and their correlation with time-to-departure (`days_left`).
 
-- `dbt/profiles.yml`: perfil para BigQuery usando `service-account`.
-- `dbt/dbt_project.yml`: configuración del proyecto y materializaciones.
-- `dbt/models/staging/`: vista de staging para limpiar y normalizar los datos.
-- `dbt/models/marts/`: tabla final particionada y clusterizada.
+The ultimate goal is to provide data-driven insights that help travelers understand the trade-offs between booking early vs. last-minute for different airlines.
 
-## Flujo de Kestra
+## 📊 Dataset
 
-- `kestra/flows/01_flight_price_pipeline.yaml`: procesa el CSV local, convierte a Parquet, sube a GCS y carga la tabla raw en BigQuery.
-- `kestra/flows/02_dbt_daily_run.yaml`: ejecuta dbt de forma separada, programada todos los días a las 09:00.
+We use the [Flight Price Prediction Dataset](https://www.kaggle.com/datasets/shubhambathwal/flight-price-prediction) from Kaggle.
+- **Main file:** `Clean_Dataset.csv`
+- **Key attributes:** Airline, Source/Destination City, Departure/Arrival Time, Stops, Class, Duration, Days Left, and Price.
 
-## Cómo ejecutar
+---
 
-1. Completa las variables en `kestra/.env` y `secrets/.json_encoded`.
-2. Asegúrate de que `secrets/gcloud-credentials.json` esté disponible.
-3. Inicia Kestra:
-   ```bash
-   cd kestra
-   docker compose up -d
-   ```
-4. Carga los flujos de Kestra (el contenedor `kestra_flows_loader` ya lo hace automáticamente).
-5. Ejecuta el flujo de ingesta manualmente desde la UI de Kestra o mediante la API.
-6. El flujo `02_dbt_daily_run` se ejecutará automáticamente cada día a las 09:00 en la zona horaria `America/Santiago`.
+## 🛠️ Tech Stack
 
-## Prueba manual de dbt
+-   **Cloud Provider:** Google Cloud Platform (GCP)
+-   **Infrastructure as Code (IaC):** Terraform
+-   **Workflow Orchestration:** Kestra
+-   **Data Lake:** Google Cloud Storage (GCS)
+-   **Data Warehouse:** BigQuery
+-   **Data Transformation:** dbt (Data Build Tool)
+-   **Data Visualization:** Looker Studio (formerly Data Studio)
 
-Puedes probar dbt localmente desde el directorio raíz:
+---
 
-```bash
-cd dbt
-python3 -m venv .venv
-source .venv/bin/activate
-pip install dbt-bigquery==1.6.0
-export DBT_PROFILES_DIR=$(pwd)
-export GCP_PROJECT_ID=...
-export DBT_DATASET=...
-export GCP_LOCATION=...
-export RAW_DATASET=...
-export RAW_TABLE_NAME=raw_flight_data
-export GCP_KEY_PATH=/ruta/a/tu/service_account.json
+## 🏗️ Architecture
 
-dbt debug
-dbt run --models stg_flight_data fct_flight_prices
-dbt test --models stg_flight_data fct_flight_prices
+The pipeline follows a modern data stack architecture:
+
+```mermaid
+graph TD
+    A[Local CSV Dataset] -->|Kestra| B(Google Cloud Storage)
+    B -->|Kestra/BigQuery Load| C[BigQuery Raw Layer]
+    C -->|dbt| D[BigQuery Staging Layer]
+    D -->|dbt| E[BigQuery Marts Layer]
+    E -->|Looker Studio| F[Flight Price Insights Dashboard]
+    
+    subgraph "Orchestration & Infrastructure"
+    G[Kestra]
+    H[Terraform]
+    end
 ```
+
+### Data Pipeline Details:
+1.  **Ingestion:** Kestra fetches the local CSV, converts it to **Parquet** for storage efficiency, and uploads it to a GCP Bucket.
+2.  **Loading:** A BigQuery Load Job is triggered by Kestra to move data from GCS to the `raw` dataset.
+3.  **Transformation (dbt):**
+    -   **Staging:** Cleans column names (snake_case) and casts data types.
+    -   **Marts:** Creates an optimized, partitioned (by flight date), and clustered (by airline and route) table for analysis.
+4.  **Reporting:** Looker Studio connects to the dbt-processed table in BigQuery.
+
+---
+
+## 🚀 How to Reproduce
+
+### 1. Prerequisites
+- [Google Cloud Account](https://cloud.google.com/) with a project created.
+- [Docker](https://www.docker.com/) and Docker Compose installed.
+- [Terraform](https://www.terraform.io/) installed.
+- [GCP Service Account](https://cloud.google.com/iam/docs/service-accounts) with `Storage Admin`, `BigQuery Admin`, and `Editor` roles.
+
+### 2. Infrastructure Setup (Terraform)
+1.  Navigate to the `terraform/` directory.
+2.  Copy the example variables file:
+    ```bash
+    cp terraform.tfvars.example terraform.tfvars
+    ```
+3.  Fill in your `GCP_PROJECT_ID` and desired region in `terraform.tfvars`.
+4.  Initialize and apply:
+    ```bash
+    terraform init
+    terraform apply
+    ```
+
+### 3. Orchestration (Kestra)
+1.  Ensure your GCP credentials are saved as `secrets/gcloud-credentials.json`.
+2.  Start Kestra using Docker Compose:
+    ```bash
+    cd kestra
+    docker-compose up -d
+    ```
+3.  Access the UI at `http://localhost:8080`.
+4.  **Important:** Configure project variables:
+    -   Go to the **Flows** section and find **`00_set_variables`**.
+    -   Edit the flow to replace `YOUR_PROJECT_ID` and other placeholders with your specific GCP details.
+    -   **Run the flow** to initialize the internal Key-Value store.
+5.  Run the **`01_flight_price_pipeline`** flow to ingest and process the data.
+
+### 4. Data Transformation (dbt)
+The transformation layer is fully orchestrated by Kestra:
+1.  **Orchestrated Run:** Use the **`02_dbt_daily_run`** flow in Kestra to execute all dbt models and tests.
+2.  **Scheduling:** This flow is configured to run automatically **every day at 09:00 (UTC-3)**.
+3.  **Manual Execution (Optional):** If you need to test dbt locally for development:
+    ```bash
+    cd dbt
+    pip install dbt-bigquery==1.6.0
+    export GCP_PROJECT_ID=... # Set your variables
+    dbt run
+    dbt test
+    ```
+
+---
+
+## 📈 Visualizations
+
+The final dashboard, **Flight Price Insights Dashboard**, provides two main views:
+
+1.  **Categorical Distribution:** Average price per Class (Economy vs. Business).
+2.  **Temporal Trend:** Price evolution based on `days_left` before the flight.
+
+[Link to dashboard](https://datastudio.google.com/s/lSIvuYXYRpI)
+
+### Dashboard Preview
+
+![Dashboard Overview](images/dashboard_overview.png)
+
+![Price Trends](images/price_trends.png)
+
+---
+
+## 🔗 Project Links
+- **Dataset:** [Kaggle](https://www.kaggle.com/datasets/shubhambathwal/flight-price-prediction)
+- **Course:** [Data Engineering Zoomcamp](https://github.com/DataTalksClub/data-engineering-zoomcamp)
