@@ -33,7 +33,11 @@ tasks:
         export GCP_LOCATION="{{ kv('GCP_LOCATION') }}"
         export RAW_DATASET="{{ kv('GCP_DATASET') }}"
         export RAW_TABLE_NAME="raw_flight_data"
-        export GCP_KEY_PATH="{{ secret('GCP_SERVICE_ACCOUNT') }}"
+        cat << 'EOF' > gcp-service-account.json
+        {{ secret('GCP_SERVICE_ACCOUNT') }}
+        EOF
+        export GCP_KEY_PATH="$(pwd)/gcp-service-account.json"
+        apt-get update && apt-get install -y git
         pip install --quiet dbt-bigquery==1.6.0
         dbt debug
         dbt run --models stg_flight_data fct_flight_prices
