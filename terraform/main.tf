@@ -38,6 +38,7 @@ resource "google_bigquery_table" "raw_flight_data" {
 resource "google_bigquery_table" "stg_flight_data" {
   dataset_id = google_bigquery_dataset.bq-dataset.dataset_id
   table_id   = "stg_flight_data"
+  deletion_protection = false
 
   time_partitioning {
     type  = "DAY"
@@ -57,13 +58,14 @@ resource "google_bigquery_table" "stg_flight_data" {
     { "name" : "class", "type" : "STRING" },
     { "name" : "duration", "type" : "FLOAT" },
     { "name" : "days_left", "type" : "INTEGER" },
-    { "name" : "price", "type" : "INTEGER" }
+    { "name" : "price_usd", "type" : "FLOAT" }
   ])
 }
 
 resource "google_bigquery_table" "fct_flight_prices" {
   dataset_id = google_bigquery_dataset.bq-dataset.dataset_id
   table_id   = "fct_flight_prices"
+  deletion_protection = false
 
   time_partitioning {
     type  = "DAY"
@@ -78,8 +80,8 @@ resource "google_bigquery_table" "fct_flight_prices" {
     { "name" : "destination_city", "type" : "STRING" },
     { "name" : "airline", "type" : "STRING" },
     { "name" : "avg_price", "type" : "FLOAT" },
-    { "name" : "min_price", "type" : "INTEGER" },
-    { "name" : "max_price", "type" : "INTEGER" }
+    { "name" : "min_price", "type" : "FLOAT" },
+    { "name" : "max_price", "type" : "FLOAT" }
   ])
 }
 
