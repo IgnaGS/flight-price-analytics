@@ -33,6 +33,7 @@ resource "google_bigquery_dataset" "bq-dataset" {
 resource "google_bigquery_table" "raw_flight_data" {
   dataset_id = google_bigquery_dataset.bq-dataset.dataset_id
   table_id   = "raw_flight_data"
+  deletion_protection = false
 }
 
 resource "google_bigquery_table" "stg_flight_data" {
